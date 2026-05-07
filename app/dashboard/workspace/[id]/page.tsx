@@ -135,7 +135,7 @@ Best,
             { key: "good", tier: o.tiers.good, label: "Good", border: "rgba(0,0,0,0.09)", bg: "#fff" },
             { key: "better", tier: o.tiers.better, label: "Better", border: "#d4521a", bg: "#fffaf8", highlight: true },
             { key: "best", tier: o.tiers.best, label: "Best", border: "rgba(0,0,0,0.09)", bg: "#fff" },
-          ] as const).map(({ key, tier, label, border, bg, highlight }) => (
+          ].map(({ key, tier, label, border, bg, highlight }: any) => (
             <div key={key} style={{ background: bg, border: `0.5px solid ${border}`, borderRadius: 16, padding: 22, position: "relative", boxShadow: highlight ? "0 4px 20px rgba(212,82,26,0.12)" : "none" }}>
               {highlight && (
                 <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: "#d4521a", color: "#fff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", padding: "4px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
