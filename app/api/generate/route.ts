@@ -34,7 +34,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   if (used >= limit) return err(`Limit reached. Upgrade to Pro for unlimited.`, 403, "LIMIT_REACHED");
 
   const body = schema.parse(await req.json());
-  const output = await generateProposal(body);
+  const output = await generateProposal(body as any);
 
   const proposal = await prisma.proposal.create({
     data: {
