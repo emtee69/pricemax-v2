@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role { ADMIN MEMBER }
+enum Plan { FREE STARTER PRO STUDIO }
+enum SubStatus { ACTIVE CANCELLED EXPIRED PAST_DUE TRIALING }
+enum PayoutStatus { PENDING APPROVED PAID REJECTED }
+enum PayoutMethod { PAYPAL BANK_TRANSFER CRYPTO_USDT CRYPTO_BTC }
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  role          Role      @default(MEMBER)
+  plan          Plan      @default(FREE)
+  referralCode  String    @unique
+  referredBy    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  subscription  Subscription?
+  proposals     Proposal[]
+  affiliate     Affiliate?
+  referrals     Referral[]  @relation("AffiliateReferrals")
+  invoices      Invoice[]
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan               Plan
+  status             SubStatus @default(ACTIVE)
+  lsSubscriptionId   String?   @unique
+  lsCustomerId       String?
+  lsVariantId        String?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean   @default(false)
+  proposalsUsed      Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Proposal {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  input     Json
+  output    Json
+  status    String    @default("draft")
+  tierChosen String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Affiliate {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isApproved     Boolean       @default(true)
+  commissionRate Float         @default(0.30)
+  totalClicks    Int           @default(0)
+  totalSignups   Int           @default(0)
+  totalEarned    Float         @default(0)
+  pendingPayout  Float         @default(0)
+  paidOut        Float         @default(0)
+  payoutMethod   PayoutMethod?
+  paypalEmail    String?
+  bankName       String?
+  bankAccount    String?
+  bankRouting    String?
+  cryptoAddress  String?
+  cryptoNetwork  String?
+  referrals      Referral[]
+  payouts        Payout[]
+  clicks         AffiliateClick[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Referral {
+  id             String    @id @default(cuid())
+  affiliateId    String
+  affiliate      Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  referredUserId String
+  referredUser   User      @relation("AffiliateReferrals", fields: [referredUserId], references: [id])
+  plan           Plan
+  monthlyRevenue Float
+  commission     Float
+  status         String    @default("active")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model AffiliateClick {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  ip          String?
+  userAgent   String?
+  converted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amount      Float
+  method      PayoutMethod
+  status      PayoutStatus @default(PENDING)
+  reference   String?
+  notes       String?
+  requestedAt DateTime     @default(now())
+  processedAt DateTime?
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceNo String   @unique
+  plan      Plan
+  amount    Float
+  currency  String   @default("USD")
+  status    String   @default("paid")
+  lsOrderId String?
+  sentAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+}

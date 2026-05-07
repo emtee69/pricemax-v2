@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/expiry-reminders", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/reset-usage", "schedule": "0 0 1 * *" }
+  ]
+}
